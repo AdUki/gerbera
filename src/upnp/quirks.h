@@ -66,6 +66,7 @@ enum class Quirk {
     Transcoding1,
     Transcoding2,
     Transcoding3,
+    NoSortExtensionCapabilities,
 };
 
 // forward declaration
