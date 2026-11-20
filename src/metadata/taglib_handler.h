@@ -167,6 +167,11 @@ private:
         TagLib::IOStream& roStream,
         const std::shared_ptr<CdsItem>& item,
         const std::shared_ptr<CdsResource>& res) const;
+    /// @brief read ID3v2 tag of raw elementary audio stream
+    void extractRawAudio(
+        TagLib::IOStream& roStream,
+        const std::shared_ptr<CdsItem>& item,
+        const std::shared_ptr<CdsResource>& res) const;
 
     /// @brief set bits per sample based on media type
     template <class Media>

@@ -345,6 +345,7 @@
           <add-libcontent contenttype="ogg" />
           <add-libcontent contenttype="pcm" />
           <add-libcontent contenttype="png" />
+          <add-libcontent contenttype="rawaudio" />
           <add-libcontent contenttype="wv" />
           <add-libcontent contenttype="wma" />
         </libcontent>
@@ -371,6 +372,7 @@
           <add-libcontent contenttype="ogg" />
           <add-libcontent contenttype="pcm" />
           <add-libcontent contenttype="png" />
+          <add-libcontent contenttype="rawaudio" />
           <add-libcontent contenttype="wv" />
           <add-libcontent contenttype="wma" />
         </libcontent>
@@ -492,10 +494,16 @@
         <treat mimetype="application/vnd.ms-wpl" as="playlist" />
         <treat mimetype="application/xspf+xml" as="playlist" />
         <treat mimetype="audio/L16" as="pcm" />
+        <treat mimetype="audio/ac3" as="rawaudio" />
+        <treat mimetype="audio/eac3" as="rawaudio" />
         <treat mimetype="audio/flac" as="flac" />
         <treat mimetype="audio/mp4" as="mp4" />
         <treat mimetype="audio/mpeg" as="mp3" />
         <treat mimetype="audio/ogg" as="ogg" />
+        <treat mimetype="audio/vnd.dolby.dd-raw" as="rawaudio" />
+        <treat mimetype="audio/vnd.dolby.mlp" as="rawaudio" />
+        <treat mimetype="audio/vnd.dts" as="rawaudio" />
+        <treat mimetype="audio/vnd.dts.hd" as="rawaudio" />
         <treat mimetype="audio/x-dsd" as="dsd" />
         <treat mimetype="audio/x-flac" as="flac" />
         <treat mimetype="audio/x-matroska" as="mka" />

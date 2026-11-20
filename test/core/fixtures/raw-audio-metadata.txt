@@ -1,0 +1,15 @@
+raw-id3.eac3, raw-id3.thd and raw-no-id3.eac3 are original synthetic regression
+fixtures: 0.1 seconds of 48 kHz stereo silence as raw E-AC-3 and Dolby TrueHD
+elementary streams. No third-party media is included.
+
+They were generated with FFmpeg 6.1 from lavfi anullsrc:
+  ffmpeg -f lavfi -i anullsrc=r=48000:cl=stereo -t 0.1 \
+    -c:a eac3 -b:a 96k -f eac3 raw-id3.eac3
+  ffmpeg -f lavfi -i anullsrc=r=48000:cl=stereo -t 0.1 \
+    -c:a truehd -strict -2 -f truehd raw-id3.thd
+
+raw-no-id3.eac3 is a copy of the E-AC-3 stream before tagging. Mutagen then
+prepended an ID3v2.3 tag to raw-id3.eac3 and raw-id3.thd with title, artist,
+album artist ("Raw album artist"), album ("Raw album"), track 3/17, year 2026
+and genre "Test". FFmpeg 6.1 exposed this tag, but FFmpeg 8.1 skips it for the
+ac3, eac3, dts, mlp and truehd demuxers, so TagLib has to read it.

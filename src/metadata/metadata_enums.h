@@ -60,6 +60,7 @@
 #define CONTENT_TYPE_PCM "pcm"
 #define CONTENT_TYPE_PLAYLIST "playlist"
 #define CONTENT_TYPE_PNG "png"
+#define CONTENT_TYPE_RAW_AUDIO "rawaudio"
 #define CONTENT_TYPE_WAVPACK "wv"
 #define CONTENT_TYPE_WMA "wma"
 

@@ -2719,6 +2719,8 @@ Tells the server what content the specified mimetype actually is in order to pic
     The attribute can have addional values:
 
     - ``playlist``: The content is a playlist and should be processed by the playlist parser script.
+    - ``rawaudio``: The content is a raw elementary audio stream (AC-3, E-AC-3, DTS, TrueHD). TagLib reads
+      its tags from a leading ID3v2 tag, and FFmpeg reads its stream properties.
 
 .. _contenttype-dlnaprofile:
 

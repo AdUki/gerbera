@@ -55,6 +55,7 @@
 - Preserve newer media metadata when recording playback
 - Preserve playlist entries when media files are updated
 - Preserve repeated local files at different playlist positions
+- Read ID3v2 tags of raw AC-3, E-AC-3, DTS and TrueHD streams
 - Recover SQLite and PostgreSQL foreign-key import failures without stopping the database
 - Refactor ContentPathSetup
 - Refactor StringSetupArguments
