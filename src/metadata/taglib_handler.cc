@@ -55,6 +55,7 @@
 #include <asftag.h>
 #include <attachedpictureframe.h>
 #include <flacfile.h>
+#include <id3v2header.h>
 #include <id3v2tag.h>
 #include <mp4file.h>
 #include <mpegfile.h>
@@ -85,6 +86,34 @@
 #include <matroskafile.h>
 #endif
 #endif
+
+namespace {
+/// @brief Raw elementary audio stream (AC-3, E-AC-3, DTS, TrueHD) with a leading ID3v2 tag
+///
+/// These streams have no container to carry tags, so taggers prepend an ID3v2 tag.
+/// Current FFmpeg no longer reads it for these demuxers, and TagLib has no file type for them.
+class RawAudioFile : public TagLib::File {
+public:
+    explicit RawAudioFile(TagLib::IOStream* stream)
+        : TagLib::File(stream)
+    {
+        if (!isOpen())
+            return;
+        seek(0);
+        if (readBlock(TagLib::ID3v2::Header::size()).startsWith(TagLib::ID3v2::Header::fileIdentifier()))
+            id3v2Tag = std::make_unique<TagLib::ID3v2::Tag>(this, 0);
+    }
+
+    TagLib::Tag* tag() const override { return id3v2Tag.get(); }
+    TagLib::AudioProperties* audioProperties() const override { return nullptr; }
+    bool save() override { return false; }
+
+    TagLib::ID3v2::Tag* ID3v2Tag() const { return id3v2Tag.get(); }
+
+private:
+    std::unique_ptr<TagLib::ID3v2::Tag> id3v2Tag;
+};
+} // namespace
 
 static std::string readMp4Bpm(const TagLib::MP4::Tag& tag, BpmSource preferredSource)
 {
@@ -157,7 +186,7 @@ bool TagLibHandler::isSupported(
     const std::string& mimeType,
     ObjectType mediaType)
 {
-    return contentType == CONTENT_TYPE_MP3 || (contentType == CONTENT_TYPE_OGG && !isOggTheora) || contentType == CONTENT_TYPE_WMA || contentType == CONTENT_TYPE_ASF || contentType == CONTENT_TYPE_WAVPACK || contentType == CONTENT_TYPE_FLAC || contentType == CONTENT_TYPE_PCM || contentType == CONTENT_TYPE_AIFF || contentType == CONTENT_TYPE_APE || contentType == CONTENT_TYPE_MP4 || contentType == CONTENT_TYPE_DSD || contentType == CONTENT_TYPE_DSDIFF || contentType == CONTENT_TYPE_MKV;
+    return contentType == CONTENT_TYPE_MP3 || (contentType == CONTENT_TYPE_OGG && !isOggTheora) || contentType == CONTENT_TYPE_WMA || contentType == CONTENT_TYPE_ASF || contentType == CONTENT_TYPE_WAVPACK || contentType == CONTENT_TYPE_FLAC || contentType == CONTENT_TYPE_PCM || contentType == CONTENT_TYPE_AIFF || contentType == CONTENT_TYPE_APE || contentType == CONTENT_TYPE_MP4 || contentType == CONTENT_TYPE_DSD || contentType == CONTENT_TYPE_DSDIFF || contentType == CONTENT_TYPE_MKV || contentType == CONTENT_TYPE_RAW_AUDIO;
 }
 
 void TagLibHandler::addField(
@@ -456,6 +485,8 @@ bool TagLibHandler::fillMetadata(
         extractPcm(fs, item, res);
     } else if (contentType == CONTENT_TYPE_MKV) {
         extractMkv(fs, item, res);
+    } else if (contentType == CONTENT_TYPE_RAW_AUDIO) {
+        extractRawAudio(fs, item, res);
     } else {
         log_warning("TagLibHandler: File '{}' has unhandled content type '{}'", item->getLocation().c_str(), contentType.c_str());
         result = false;
@@ -1234,6 +1265,27 @@ void TagLibHandler::setBitsPerSample(
     if (bps > 0) {
         res->addAttribute(ResourceAttribute::BITS_PER_SAMPLE, bps);
     }
+}
+
+void TagLibHandler::extractRawAudio(
+    TagLib::IOStream& roStream,
+    const std::shared_ptr<CdsItem>& item,
+    const std::shared_ptr<CdsResource>& res) const
+{
+    RawAudioFile raw(&roStream);
+    auto id3 = raw.ID3v2Tag();
+    if (!id3) {
+        log_debug("TagLibHandler {}: raw audio stream has no ID3v2 tag", item->getLocation().c_str());
+        return;
+    }
+
+    // A raw stream has no audio properties for TagLib, so FFmpeg fills them later
+    auto sc = converterManager->i2i();
+    auto propertyMap = id3->properties();
+    populateGenericTags(item, res, raw, propertyMap, sc);
+    populateAuxTags(item, propertyMap, sc);
+    if (item->getMetaData(MetadataFields::M_DESCRIPTION).empty() && isCommentEnabled)
+        makeComment(item, propertyMap, sc);
 }
 
 #endif // HAVE_TAGLIB
