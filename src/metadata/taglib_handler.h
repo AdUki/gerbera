@@ -147,6 +147,11 @@ private:
         TagLib::IOStream& roStream,
         const std::shared_ptr<CdsItem>& item,
         const std::shared_ptr<CdsResource>& res) const;
+    /// @brief read specific dsdiff (dff) data
+    void extractDSDIFF(
+        TagLib::IOStream& roStream,
+        const std::shared_ptr<CdsItem>& item,
+        const std::shared_ptr<CdsResource>& res) const;
     /// @brief read specific mp4 data
     void extractMP4(
         TagLib::IOStream& roStream,
