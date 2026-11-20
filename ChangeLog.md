@@ -29,6 +29,7 @@
 - Fix Alpine apk-tools download in Minimal CI
 - Fix ASX local URI references and UTF-8 metadata
 - Fix CaptionInfo.sec never being sent to Samsung TVs
+- Fix FFmpeg stream durations being out of scale or garbage when unknown
 - Fix getValidUTF8CutPosition splitting multibyte characters
 - Fix hang when shutting down the SQLite thread
 - Fix hang when stopping Gerbera during startup

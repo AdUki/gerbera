@@ -597,6 +597,14 @@ static void setDuration(const std::shared_ptr<CdsResource>& res, int64_t value)
     }
 }
 
+// duration of a stream in AV_TIME_BASE units, AV_NOPTS_VALUE when unknown
+static int64_t getStreamDuration(const AVStream* st)
+{
+    if (st->duration == AV_NOPTS_VALUE)
+        return AV_NOPTS_VALUE;
+    return av_rescale_q(st->duration, st->time_base, AV_TIME_BASE_Q);
+}
+
 static void setBitRate(const std::shared_ptr<CdsResource>& res, int64_t value)
 {
     if (value > 0) {
@@ -678,8 +686,9 @@ bool FfmpegHandler::addFfmpegResourceFields(
             resource2->addAttribute(ResourceAttribute::ORIENTATION, getOrientation(st));
 
             // duration of stream
-            if (st->duration * av_q2d(st->time_base) > ffmpegObject.pFormatCtx->duration || resource2->getAttribute(ResourceAttribute::DURATION).empty())
-                setDuration(resource2, st->duration * av_q2d(st->time_base));
+            auto streamDuration = getStreamDuration(st);
+            if (streamDuration > ffmpegObject.pFormatCtx->duration || resource2->getAttribute(ResourceAttribute::DURATION).empty())
+                setDuration(resource2, streamDuration);
             // bitrate of stream
             setBitRate(resource2, as_codecpar(st)->bit_rate);
             setResourceAttributes(resource2, st, -1);
@@ -784,8 +793,9 @@ bool FfmpegHandler::addFfmpegResourceFields(
             // find the first stream that has a valid sample rate
 
             // duration of stream
-            if (st->duration * av_q2d(st->time_base) > ffmpegObject.pFormatCtx->duration || resource->getAttribute(ResourceAttribute::DURATION).empty())
-                setDuration(resource, st->duration * av_q2d(st->time_base));
+            auto streamDuration = getStreamDuration(st);
+            if (streamDuration > ffmpegObject.pFormatCtx->duration || resource->getAttribute(ResourceAttribute::DURATION).empty())
+                setDuration(resource, streamDuration);
             // bitrate of stream
             setBitRate(resource, as_codecpar(st)->bit_rate);
 
