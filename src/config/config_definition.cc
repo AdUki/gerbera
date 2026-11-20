@@ -1029,6 +1029,7 @@ std::vector<std::shared_ptr<ConfigSetup>> ConfigDefinition::getImportOptions()
         { "png", "image/png" },
         { "qt", "video/quicktime" },
         { "srt", MIME_TYPE_SRT_SUBTITLE },
+        { "thd", "audio/vnd.dolby.mlp" }, // LibMagic does not identify raw Dolby TrueHD streams
         { "ts", "video/mp2t" }, // LibMagic fails to identify MPEG2 Transport Streams
         { "tsa", "audio/mp2t" }, // LibMagic fails to identify MPEG2 Transport Streams
         { "tsv", "video/mp2t" }, // LibMagic fails to identify MPEG2 Transport Streams

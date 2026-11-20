@@ -30,6 +30,7 @@
 - Fix ASX local URI references and UTF-8 metadata
 - Fix CaptionInfo.sec never being sent to Samsung TVs
 - Fix crash when the client cache grows during requests
+- Fix FFmpeg stream durations being out of scale or garbage when unknown
 - Fix getValidUTF8CutPosition splitting multibyte characters
 - Fix hang when shutting down the SQLite thread
 - Fix hang when stopping Gerbera during startup
@@ -44,6 +45,7 @@
 - Fix: Link icon files instead of copying
 - Handle missing database objects in playlists and cuesheets
 - Hide GetSortExtensionCapabilities from dLeyna to avoid its crash
+- Import raw Dolby TrueHD (thd) files as audio
 - Improve logging for mime and extensions
 - Increase timeouts for tests
 - Keep sortKey for new containers
