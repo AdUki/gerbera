@@ -250,6 +250,8 @@ std::vector<std::pair<std::string, Quirk>> ClientConfig::quirkFlags {
     { "Transcode1", Quirk::Transcoding1 },
     { "Transcode2", Quirk::Transcoding2 },
     { "Transcode3", Quirk::Transcoding3 },
+    { "NoSortExtensionCapabilities", Quirk::NoSortExtensionCapabilities },
+    { "NO_SORT_EXTENSION_CAPABILITIES", Quirk::NoSortExtensionCapabilities },
 };
 
 QuirkFlags ClientConfig::remapFlag(const std::string& flag)
