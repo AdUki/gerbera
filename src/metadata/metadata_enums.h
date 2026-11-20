@@ -46,6 +46,7 @@
 #define CONTENT_TYPE_AVI "avi"
 #define CONTENT_TYPE_CUESHEET "cuesheet"
 #define CONTENT_TYPE_DSD "dsd"
+#define CONTENT_TYPE_DSDIFF "dff"
 #define CONTENT_TYPE_FLAC "flac"
 #define CONTENT_TYPE_HEIC "heic"
 #define CONTENT_TYPE_HEIF "heif"

@@ -74,6 +74,7 @@
 #include <utility>
 
 #if TAGLIB_MAJOR_VERSION >= 2
+#include <dsdifffile.h>
 #include <dsffile.h>
 #include <mp4itemfactory.h>
 #include <wavfile.h>
@@ -156,7 +157,7 @@ bool TagLibHandler::isSupported(
     const std::string& mimeType,
     ObjectType mediaType)
 {
-    return contentType == CONTENT_TYPE_MP3 || (contentType == CONTENT_TYPE_OGG && !isOggTheora) || contentType == CONTENT_TYPE_WMA || contentType == CONTENT_TYPE_ASF || contentType == CONTENT_TYPE_WAVPACK || contentType == CONTENT_TYPE_FLAC || contentType == CONTENT_TYPE_PCM || contentType == CONTENT_TYPE_AIFF || contentType == CONTENT_TYPE_APE || contentType == CONTENT_TYPE_MP4 || contentType == CONTENT_TYPE_DSD || contentType == CONTENT_TYPE_MKV;
+    return contentType == CONTENT_TYPE_MP3 || (contentType == CONTENT_TYPE_OGG && !isOggTheora) || contentType == CONTENT_TYPE_WMA || contentType == CONTENT_TYPE_ASF || contentType == CONTENT_TYPE_WAVPACK || contentType == CONTENT_TYPE_FLAC || contentType == CONTENT_TYPE_PCM || contentType == CONTENT_TYPE_AIFF || contentType == CONTENT_TYPE_APE || contentType == CONTENT_TYPE_MP4 || contentType == CONTENT_TYPE_DSD || contentType == CONTENT_TYPE_DSDIFF || contentType == CONTENT_TYPE_MKV;
 }
 
 void TagLibHandler::addField(
@@ -447,6 +448,8 @@ bool TagLibHandler::fillMetadata(
         extractWavPack(fs, item, res);
     } else if (contentType == CONTENT_TYPE_DSD) {
         extractDSF(fs, item, res);
+    } else if (contentType == CONTENT_TYPE_DSDIFF) {
+        extractDSDIFF(fs, item, res);
     } else if (contentType == CONTENT_TYPE_AIFF) {
         extractAiff(fs, item, res);
     } else if (contentType == CONTENT_TYPE_PCM) {
@@ -535,6 +538,31 @@ std::unique_ptr<IOHandler> TagLibHandler::serveContent(
         return std::make_unique<MemIOHandler>(art->picture().data(), art->picture().size());
 #else
         log_warning("For DSF support in file '{}' TaglibHandler needs to be built with taglib 2 and above", itemLocation);
+        return nullptr;
+#endif
+    }
+    if (contentType == CONTENT_TYPE_DSDIFF) {
+#if TAGLIB_MAJOR_VERSION >= 2
+        auto f = TagLib::DSDIFF::File(&roStream);
+
+        if (!f.isValid())
+            throw_std_runtime_error("Could not open file {} as DSDIFF", itemLocation);
+
+        if (!f.hasID3v2Tag())
+            throw_std_runtime_error("DSDIFF resource {} has no ID3 information", itemLocation);
+
+        auto&& list = f.ID3v2Tag()->frameList("APIC");
+        if (list.isEmpty())
+            throw_std_runtime_error("DSDIFF resource {} has no album information", itemLocation);
+
+        auto art = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(list.front());
+        if (!art) {
+            return nullptr;
+        }
+
+        return std::make_unique<MemIOHandler>(art->picture().data(), art->picture().size());
+#else
+        log_warning("For DSDIFF support in file '{}' TaglibHandler needs to be built with taglib 2 and above", itemLocation);
         return nullptr;
 #endif
     }
@@ -1030,6 +1058,51 @@ void TagLibHandler::extractDSF(
     }
 #else
     log_warning("For DSF support in file '{}' TaglibHandler needs to be built with taglib 2 and above", item->getLocation().c_str());
+#endif
+}
+
+void TagLibHandler::extractDSDIFF(
+    TagLib::IOStream& roStream,
+    const std::shared_ptr<CdsItem>& item,
+    const std::shared_ptr<CdsResource>& res) const
+{
+#if TAGLIB_MAJOR_VERSION >= 2
+    auto dff = TagLib::DSDIFF::File(&roStream);
+
+    if (!dff.isValid()) {
+        log_info("TagLibHandler {}: does not appear to be a valid dff file", item->getLocation().c_str());
+        return;
+    }
+    auto sc = converterManager->i2i();
+    populateGenericTags(item, res, dff, dff.properties(), sc);
+
+    setBitsPerSample(item, res, dff);
+
+    if (!dff.hasID3v2Tag())
+        return;
+
+    auto&& apicFrameList = dff.ID3v2Tag()->frameList("APIC");
+    if (!apicFrameList.isEmpty()) {
+        auto art = dynamic_cast<const TagLib::ID3v2::AttachedPictureFrame*>(apicFrameList.front());
+        if (!art) {
+            return;
+        }
+
+        auto pic = art->picture();
+        auto [artMimetype, err] = sc->convert(art->mimeType().to8Bit(true));
+        if (!err.empty()) {
+            log_warning("{}: {}", item->getLocation().string(), err);
+        }
+        if (!isValidArtworkContentType(artMimetype)) {
+            artMimetype = getContentTypeFromByteVector(pic);
+        }
+
+        auto resource = addArtworkResource(item, ContentHandler::ID3, artMimetype);
+        if (resource)
+            resource->addAttribute(ResourceAttribute::SIZE, pic.size());
+    }
+#else
+    log_warning("For DSDIFF support in file '{}' TaglibHandler needs to be built with taglib 2 and above", item->getLocation().c_str());
 #endif
 }
 

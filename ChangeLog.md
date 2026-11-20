@@ -57,6 +57,7 @@
 - Preserve newer media metadata when recording playback
 - Preserve playlist entries when media files are updated
 - Preserve repeated local files at different playlist positions
+- Read DSDIFF (dff) metadata and artwork with TagLib
 - Recover SQLite and PostgreSQL foreign-key import failures without stopping the database
 - Refactor ContentPathSetup
 - Refactor StringSetupArguments
